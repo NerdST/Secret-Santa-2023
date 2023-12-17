@@ -23,6 +23,7 @@ export default class PlayingCard {
         const cardMaterial = new THREE.MeshBasicMaterial ( { map: cardTextureFront, side: THREE.DoubleSide } );
 
         this.cardMesh = new THREE.Mesh ( cardGeometry, cardMaterial );
+        this.cardMesh.name = 'card';
     }
 
     // Get Suit Name

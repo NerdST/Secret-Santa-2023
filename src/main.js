@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 import Deck from './obj/deck.js';
 
@@ -14,6 +14,7 @@ const camera = new THREE.PerspectiveCamera ( 75, window.innerWidth / window.inne
 
 // Controls
 const controls = new OrbitControls ( camera, canvas );
+controls.enableDamping = true;
 
 // Renderer
 const renderer = new THREE.WebGLRenderer ( {
@@ -120,6 +121,7 @@ let t = 0;
 
 var playerHand = [];
 var opponentHand = [];
+var miscCards = [];
 
 ///////////////////////////////// GAME LOGIC //////////////////////////////////
 /*
@@ -143,14 +145,56 @@ Story:
     The Ace is razor edged and will be used to kill the opponent
 */
 
-// Create the deck and shuffle it
+/**
+ *                                Events
+ *  - PlayCard
+ *      - Triggers when player card is clicked
+ *  
+ */
+
+// Create the deck and shuffle it (remove all Aces)
 const deck = new Deck ();
+deck.setPos ( 0.5, 0, 0 );
+deck.addToScene ( scene );
+
 deck.shuffle ();
+
+for ( let i = 0; i < 5; i++ ) {
+    deck.deal ( miscCards, [ i, 'ace' ] );
+}
+
+// Handle mouse clicks
+document.addEventListener ( 'mousedown', ( event ) => {
+    // Get mouse position
+    const mouse = new THREE.Vector2();
+    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+    mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+    // Raycaster
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera ( mouse, camera );
+
+    // Intersects
+    const intersects = raycaster.intersectObjects ( scene.children );
+
+    // Left click
+    if ( event.button === 0 ) {
+        // If the player clicks on a card
+        if ( intersects[0].object.name === 'card' ) {
+            // If the card is in the player's hand
+            for ( let i = 0; i < playerHand.length; i++ ) {
+                if ( intersects[0].object.uuid === playerHand[i].cardMesh.uuid ) {
+                    // Trigger PlayCard Event
+                    if ( playerTurn ) document.dispatchEvent ( PlayerPlayCard );
+                }
+            }
+        }
+    }
+} );
 
 const animate = () => {
     requestAnimationFrame(animate);
 
-    // Camera controls
     controls.update();
 
     renderer.render(scene, camera);
