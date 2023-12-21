@@ -74,20 +74,36 @@ export default class Deck {
     }
 
     // Deal Card to array (with optional card specification argument)
-    deal ( array, card = null ) {
+    deal ( array, card = null, parent = null, index = null ) {
+        // Get the first null index in array
+        let nullIndex = array.indexOf ( null );
+
         if ( card === null ) {
             // If deck is empty, throw error
             if ( this.cards.length === 0 ) throw new Error ( 'Deck is empty' );
 
             // Deal card to array
-            array.push ( this.cards.pop () );
+            if ( index === null ) {
+                array[nullIndex] = this.cards.pop ();
+            } else {
+                array[index] = this.cards.pop ();
+            }
         } else {
             let house = card[0];
             let value = card[1];
 
             for ( let i = 0; i < this.cards.length; i++ ) {
                 if ( this.cards[i].suit === house && this.cards[i].value === value ) {
-                    array.push ( this.cards.splice ( i, 1 )[0] );
+                    // Deal card to array
+                    if ( index === null ) {
+                        array[nullIndex] = this.cards.splice ( i, 1 )[0];
+                    } else {
+                        array[index] = this.cards.splice ( i, 1 )[0];
+                    }
+
+                    // Set card's parent
+                    array[nullIndex].cardMesh.userData.owner = parent;
+                    
                     break;
                 }
             }
